@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 import requests
 import csv
+import numpy as np
 
 def getDataSetURL(file_name):
     url = []
@@ -14,33 +15,30 @@ def getDataSetURL(file_name):
 
     return url
 
-url = getDataSetURL('DataSetArtikel.csv')
+page_link = getDataSetURL('DataSetArtikel.csv')
 
 article = []
-
-for data in url:
+for data in page_link:
     page_response = requests.get(data, timeout=5)
-    
     page_content = BeautifulSoup(page_response.content, "html.parser")
-    div = page_content.find_all("div", class_="article-content-body__item-page")
+    findP = page_content.find_all("p")
 
-    article.append(div[0].text)
+    textContent = []
+    for i in range(0, len(findP)):
+        paragraphs = findP[i].text
+        textContent.append(paragraphs)
 
-print(article[0])
+    a = []
+    i = 0
+    findAt = 0
+    for data in textContent:
+        if 'Klikdokter.com' in data:
+            findAt = i
+        i += 1
 
-print(nltk.word_tokenize(article[0]))
+    for i in range(findAt, len(textContent)):
+        a.append(textContent[i])
 
-text_file = open("article.txt", "w")
-text_file.write("Purchase Amount: %s" % article)
-text_file.close()
+    article.append(a)
 
-
-#we use the html parser to parse the url content and store it in a variable.
-#print(len(page_content.find_all("p")))
-
-# textContent = []
-# for i in range(0, len(div.find_all("p"))):
-#     paragraphs = page_content.find_all("p")[i].text
-#     textContent.append(paragraphs)
-
-#print(textContent)
+np.savetxt('article.txt', article, fmt="%s")
